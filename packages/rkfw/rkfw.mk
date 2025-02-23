@@ -22,6 +22,10 @@ define RKFW_INSTALL_TARGET_CMDS
 	cp -v $(@D)/rk32/rk322x_ddr_330MHz_v1.10.bin $(BINARIES_DIR)/boot-blobs/
 	cp -v $(@D)/rk32/rk322x_miniloader_v2.56.bin $(BINARIES_DIR)/boot-blobs/
 	cp -v $(@D)/rk32/rk3228_tee_ta-51.1.0-333-gc9d95d1.bin $(BINARIES_DIR)/boot-blobs/
+	
+	cp -v $(@D)/rk31/rk3128_ddr_300MHz_v2.12.bin $(BINARIES_DIR)/boot-blobs/
+	cp -v $(@D)/rk31/rk312x_miniloader_v2.63.bin $(BINARIES_DIR)/boot-blobs/
+	cp -v $(@D)/rk31/rk3126_tee_ta_v2.03.bin $(BINARIES_DIR)/boot-blobs/	
 endef
 
 $(eval $(generic-package))

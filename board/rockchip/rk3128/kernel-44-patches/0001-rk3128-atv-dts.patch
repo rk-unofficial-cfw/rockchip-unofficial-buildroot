@@ -1,0 +1,405 @@
+diff -ruPN linux-4.4/arch/arm/boot/dts/rk3128-atv.dts linux-4.4-new/arch/arm/boot/dts/rk3128-atv.dts
+--- linux-4.4/arch/arm/boot/dts/rk3128-atv.dts	1970-01-01 01:00:00.000000000 +0100
++++ linux-4.4-new/arch/arm/boot/dts/rk3128-atv.dts	2025-02-07 18:12:13.923000201 +0100
+@@ -0,0 +1,400 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++
++/dts-v1/;
++
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++#include "rk3128.dtsi"
++
++/ {
++	model = "Generic rk3128 atv box";
++	compatible = "rockchip,rk3128";
++
++	aliases {
++		ethernet0 = &gmac;
++		mmc0 = &emmc;
++		mmc1 = &sdmmc;
++	};
++
++	memory@60000000 {
++		device_type = "memory";
++		reg = <0x60000000 0x40000000>;
++	};
++
++	chosen {
++		stdout-path = &uart1;
++	};
++
++	dc_5v: dc-5v-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "DC_5V";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++	
++	vcc_sys: vcc-sys-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_SYS";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&dc_5v>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++	
++	vcc_io: vcc-io-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_IO";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	mcu3v3: mcu3v3-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "MCU3V3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_io>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc_ddr: vcc-ddr-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_DDR";
++		regulator-min-microvolt = <1500000>;
++		regulator-max-microvolt = <1500000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc_lan: vcc-lan-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_LAN";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_io>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc_sd: vcc-sd-regulator {
++		compatible = "regulator-fixed";
++		gpio = <&gpio1 RK_PB6 GPIO_ACTIVE_LOW>;
++		startup-delay-us = <500>;
++		regulator-name = "VCC_SD";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_io>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&sdmmc_pwren>;
++	};
++
++	vcca_33: vcca-33-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "VCCA_33";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++
++	vcc33_hdmi: vcc33-hdmi-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC33_HDMI";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcca_33>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++
++	vdd_11: vdd-11-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "VDD_11";
++		regulator-min-microvolt = <1100000>;
++		regulator-max-microvolt = <1100000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vdd11_hdmi: vdd11-hdmi-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "VDD11_HDMI";
++		regulator-min-microvolt = <1100000>;
++		regulator-max-microvolt = <1100000>;
++		vin-supply = <&vdd_11>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vdd_arm: vdd-arm-regulator {
++		compatible = "pwm-regulator";
++		regulator-name = "VDD_ARM";
++		pwms = <&pwm1 0 25000 1>;
++		pwm-supply = <&vcc_sys>;
++		regulator-min-microvolt = <900000>;
++		regulator-max-microvolt = <1425000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	/*
++	 * As per schematics vdd_log is minimum 900 mV, maximum 1400 mV.
++	 * Since there are HW blocks in PD_LOGIC (which are all driven by
++	 * this supply), that either do not have a driver at all or the
++	 * driver does not implement regulator support we have to make
++	 * sure here that the voltage never drops below 1050 mV.
++	 */
++	vdd_log: vdd-log-regulator {
++		compatible = "pwm-regulator";
++		regulator-name = "VDD_LOG";
++		pwms = <&pwm2 0 25000 1>;
++		pwm-dutycycle-range = <30 100>;
++		pwm-supply = <&vcc_sys>;
++		regulator-min-microvolt = <1050000>;
++		regulator-max-microvolt = <1400000>;
++		regulator-ramp-delay = <4000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++	
++	sound {
++		status = "okay";
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,name = "ROCKCHIP,RK3229";
++		simple-audio-card,cpu {
++			sound-dai = <&i2s_2ch>;
++		};
++		simple-audio-card,codec {
++			sound-dai = <&codec>;
++		};
++	};
++
++	hdmi_sound: hdmi-sound {
++		status = "okay";
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,mclk-fs = <128>;
++		simple-audio-card,name = "HDMI";
++		simple-audio-card,cpu {
++			sound-dai = <&i2s_8ch>;
++		};
++		simple-audio-card,codec {
++			sound-dai = <&hdmi>;
++		};
++	};	
++
++};
++
++
++&codec {
++	#sound-dai-cells = <0>;
++	status = "okay";
++};
++
++&hdmi {
++	status = "okay";
++};
++
++&hevc {
++	status = "okay";
++};
++
++&hevc_mmu {
++	status = "okay";
++};
++
++&vpu {
++	status = "okay";
++};
++
++&vpu_mmu {
++	status = "okay";
++};
++
++
++&i2s_2ch {
++	status = "okay";
++	#sound-dai-cells = <0>;
++};
++
++&i2s_8ch {
++	#sound-dai-cells = <0>;
++	status = "okay";
++};
++
++&iep {
++	status = "okay";
++};
++
++&iep_mmu {
++	status = "okay";
++};
++
++&cpu0 {
++	cpu-supply = <&vdd_arm>;
++};
++
++&display_subsystem {
++
++	status = "okay";
++
++	route_hdmi: route-hdmi {
++		status = "okay";
++		connect = <&vop_out_hdmi>;
++	};
++
++};
++
++&emmc {
++	bus-width = <8>;
++	vmmc-supply = <&vcc_io>;
++	cap-mmc-highspeed;
++	mmc-ddr-3_3v;
++	no-sd;
++	no-sdio;
++	status = "okay";
++};
++
++&gpu {
++	mali-supply = <&vdd_log>;
++	status = "okay";
++};
++
++&pinctrl {
++
++	ir-receiver {
++		ir_int: ir-int {
++			rockchip,pins = <3 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
++	usb2 {
++		host_drv: host-drv {
++			rockchip,pins = <3 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++	
++};
++
++&pwm1 {
++	status = "okay";
++};
++
++&pwm2 {
++	status = "okay";
++};
++
++
++&saradc {
++	vref-supply = <&vcc_io>;
++	status = "okay";
++};
++
++&sdmmc {
++	bus-width = <4>;
++	vmmc-supply = <&vcc_sd>;
++	vqmmc-supply = <&vcc_sd>;
++	disable-wp;
++	cap-sd-highspeed;
++	no-mmc;
++	no-sdio;
++	supports-sd;
++	broken-cd;
++	clock-freq-min-max = <400000 50000000>;
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart1_xfer>;
++	status = "okay";
++};
++
++&uart2 {
++	status = "disabled";
++};
++
++&usb_host_ehci {
++	status = "okay";
++};
++
++&usb_host_ohci {
++	status = "okay";
++};
++
++&usb_otg {
++	vusb_a-supply = <&vcc_io>;
++	vusb_d-supply = <&vdd_11>;
++	status = "okay";
++};
++
++&u2phy {
++	status = "okay";
++};
++
++&u2phy_otg {
++	status = "okay";
++};
++
++&u2phy_host {
++	status = "okay";
++};
++
++&vop {
++	status = "okay";
++};
++
++&vop_mmu {
++	status = "okay";
++};
++
++&nandc {
++	status = "okay";
++};
++
++&sdio {
++	status = "disabled";
++};
++
++&gmac {
++	assigned-clocks = <&cru SCLK_MAC_SRC>;
++	assigned-clock-rates = <50000000>;
++	phy-mode = "rmii";
++	clock_in_out = "output";
++	reset-gpio = <&gpio2 RK_PD0 GPIO_ACTIVE_LOW>;
++	tx_delay = <0x30>;
++	rx_delay = <0x10>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&rgmii_pins &phy_rst>;
++	status = "okay";
++};
++
++&tsadc {
++	status = "okay";
++};
++
++&pinctrl {
++	gmac {
++		phy_rst: phy-rst {			
++			rockchip,pins = <2 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++};
+\ No newline at end of file

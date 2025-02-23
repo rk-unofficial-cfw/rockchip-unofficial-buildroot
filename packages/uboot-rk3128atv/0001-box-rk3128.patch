@@ -1,0 +1,603 @@
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/arch/arm/dts/rk3128-box-u-boot.dtsi u-boot-new/arch/arm/dts/rk3128-box-u-boot.dtsi
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/arch/arm/dts/rk3128-box-u-boot.dtsi	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/arch/arm/dts/rk3128-box-u-boot.dtsi	2025-02-21 16:42:39.220006229 +0100
+@@ -0,0 +1,37 @@
++// SPDX-License-Identifier: GPL-2.0+
++
++#include "rk3128-u-boot.dtsi"
++
++&emmc {
++	bootph-pre-ram;
++	bootph-some-ram;
++};
++
++&sdmmc {
++	bootph-pre-ram;
++	bootph-some-ram;
++};
++
++&vcc_sd {
++	bootph-pre-ram;
++	bootph-some-ram;
++};
++
++&uart1 {
++	bootph-all;
++};
++
++&uart1_xfer {
++	bootph-all;
++};
++
++&vdd_arm {
++	regulator-init-microvolt = <1050000>;
++};
++
++&vdd_log {
++	/* not supported by u-boot */
++	/delete-property/ pwm-dutycycle-range;
++	regulator-min-microvolt =   <950000>;
++	regulator-init-microvolt = <1050000>;
++};
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/arch/arm/mach-rockchip/rk3128/Kconfig u-boot-new/arch/arm/mach-rockchip/rk3128/Kconfig
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/arch/arm/mach-rockchip/rk3128/Kconfig	2025-02-10 14:21:55.000000000 +0100
++++ u-boot-new/arch/arm/mach-rockchip/rk3128/Kconfig	2025-02-21 11:11:35.438001652 +0100
+@@ -17,6 +17,12 @@
+         help
+ 	  XPI-3128 is a SBC board based on Rockchip RK3128
+ 
++config TARGET_BOX_RK3128
++        bool "Generic rk3128 android box"
++        select BOARD_LATE_INIT
++        help
++	  Generic rk3128 android box
++
+ endchoice
+ 
+ config ROCKCHIP_BOOT_MODE_REG
+@@ -87,5 +93,6 @@
+ 
+ source "board/geniatech/xpi-3128_rk3128/Kconfig"
+ source "board/rockchip/evb_rk3128/Kconfig"
++source "board/rockchip/box-rk3128/Kconfig"
+ 
+ endif
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/board/rockchip/box-rk3128/Kconfig u-boot-new/board/rockchip/box-rk3128/Kconfig
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/board/rockchip/box-rk3128/Kconfig	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/board/rockchip/box-rk3128/Kconfig	2025-02-21 11:58:59.396002307 +0100
+@@ -0,0 +1,12 @@
++if TARGET_BOX_RK3128
++
++config SYS_BOARD
++	default "box-rk3128"
++
++config SYS_VENDOR
++	default "rockchip"
++
++config SYS_CONFIG_NAME
++	default "box-rk3128"
++
++endif
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/board/rockchip/box-rk3128/Makefile u-boot-new/board/rockchip/box-rk3128/Makefile
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/board/rockchip/box-rk3128/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/board/rockchip/box-rk3128/Makefile	2025-02-21 10:33:46.636001129 +0100
+@@ -0,0 +1,5 @@
++#
++# SPDX-License-Identifier:     GPL-2.0+
++#
++
++obj-y	+= box-rk3128.o
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/board/rockchip/box-rk3128/box-rk3128.c u-boot-new/board/rockchip/box-rk3128/box-rk3128.c
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/board/rockchip/box-rk3128/box-rk3128.c	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/board/rockchip/box-rk3128/box-rk3128.c	2025-02-21 19:49:41.975008815 +0100
+@@ -0,0 +1,11 @@
++// SPDX-License-Identifier: GPL-2.0+
++
++#include <asm/io.h>
++#include <asm/arch-rockchip/sdram_rk3128.h>
++
++#if IS_ENABLED(CONFIG_TPL_BUILD)
++void get_dram_config(enum rk3128_dram_config *dram_config)
++{
++	*dram_config = DRAM_DDR3_528_MHZ;
++}
++#endif
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/configs/box-rk3128_defconfig u-boot-new/configs/box-rk3128_defconfig
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/configs/box-rk3128_defconfig	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/configs/box-rk3128_defconfig	2025-02-21 16:40:03.818006193 +0100
+@@ -0,0 +1,56 @@
++CONFIG_ARM=y
++CONFIG_ARCH_ROCKCHIP=y
++CONFIG_SPL_GPIO=y
++CONFIG_DEFAULT_DEVICE_TREE="rockchip/rk3128-box"
++CONFIG_ROCKCHIP_RK3128=y
++CONFIG_TARGET_BOX_RK3128=y
++CONFIG_SYS_LOAD_ADDR=0x60800800
++CONFIG_DEBUG_UART_BASE=0x20064000
++CONFIG_DEBUG_UART_CLOCK=24000000
++CONFIG_DEBUG_UART=y
++# CONFIG_ANDROID_BOOT_IMAGE is not set
++CONFIG_FIT_VERBOSE=y
++CONFIG_DEFAULT_FDT_FILE="rockchip/rk3128-box.dtb"
++# CONFIG_DISPLAY_CPUINFO is not set
++CONFIG_DISPLAY_BOARDINFO_LATE=y
++# CONFIG_SPL_RAW_IMAGE_SUPPORT is not set
++CONFIG_SPL_POWER=y
++# CONFIG_CMD_BIND is not set
++CONFIG_CMD_GPIO=y
++CONFIG_CMD_GPIO_READ=y
++CONFIG_CMD_GPT=y
++CONFIG_CMD_I2C=y
++CONFIG_CMD_MMC=y
++CONFIG_CMD_USB=y
++CONFIG_CMD_ROCKUSB=y
++# CONFIG_CMD_SETEXPR is not set
++CONFIG_CMD_RNG=y
++CONFIG_CMD_REGULATOR=y
++CONFIG_SYS_RELOC_GD_ENV_ADDR=y
++CONFIG_FASTBOOT_BUF_ADDR=0x60800800
++CONFIG_SPL_DM_GPIO_LOOKUP_LABEL=y
++CONFIG_ROCKCHIP_GPIO=y
++CONFIG_SYS_I2C_ROCKCHIP=y
++CONFIG_LED=y
++CONFIG_LED_GPIO=y
++CONFIG_SUPPORT_EMMC_RPMB=y
++CONFIG_MMC_DW=y
++CONFIG_MMC_DW_ROCKCHIP=y
++CONFIG_PHY_ROCKCHIP_INNO_USB2=y
++CONFIG_SPL_DM_REGULATOR=y
++CONFIG_REGULATOR_PWM=y
++CONFIG_SPL_DM_REGULATOR_FIXED=y
++CONFIG_PWM_ROCKCHIP=y
++CONFIG_DEBUG_UART_SHIFT=2
++CONFIG_SYS_NS16550_MEM32=y
++CONFIG_SYSRESET=y
++CONFIG_USB=y
++CONFIG_DM_USB_GADGET=y
++CONFIG_USB_EHCI_HCD=y
++CONFIG_USB_EHCI_GENERIC=y
++CONFIG_USB_DWC2=y
++CONFIG_USB_GADGET=y
++CONFIG_USB_FUNCTION_ROCKUSB=y
++CONFIG_ERRNO_STR=y
++CONFIG_OF_LIBFDT_ASSUME_MASK=0
++CONFIG_RAM_ROCKCHIP_DEBUG=y
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/drivers/ram/rockchip/sdram_rk3128.c u-boot-new/drivers/ram/rockchip/sdram_rk3128.c
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/drivers/ram/rockchip/sdram_rk3128.c	2025-02-10 14:21:55.000000000 +0100
++++ u-boot-new/drivers/ram/rockchip/sdram_rk3128.c	2025-02-21 15:00:52.211004822 +0100
+@@ -770,21 +770,16 @@
+ 	struct sdram_cap_info *cap_info = &dram_info->cap_info;
+ 	struct sdram_base_params *base = &ddr_timing->base;
+ 	int ret = 0;
+-	unsigned int coltmp, rowtmp = 16, bktmp = 3;
++	unsigned int coltmp = 11, rowtmp = 16, bktmp = 3;
+ 
+ 	ret = detect_bw(dram_info);
+ 	if (ret)
+ 		goto out;
+ 
+ 	move_to_config_state(dram_info);
+-	if (cap_info->bw == 2) {
+-		writel(6, &axi_bus->ddrconf);
+-		coltmp = 11;
+-	} else {
+-		writel(3, &axi_bus->ddrconf);
+-		coltmp = 10;
+-	};
+-
++	
++	writel(6, &axi_bus->ddrconf);
++	
+ 	move_to_access_state(dram_info);
+ 	if (sdram_detect_col(cap_info, coltmp) != 0) {
+ 		ret = -1;
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/dts/upstream/src/arm/rockchip/rk3128-box.dts u-boot-new/dts/upstream/src/arm/rockchip/rk3128-box.dts
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/dts/upstream/src/arm/rockchip/rk3128-box.dts	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/dts/upstream/src/arm/rockchip/rk3128-box.dts	2025-02-21 16:38:57.356006178 +0100
+@@ -0,0 +1,394 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++
++/dts-v1/;
++
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++#include "rk3128.dtsi"
++
++/ {
++	model = "Generic rk3128 Android box";
++	compatible = "rockchip,rk3128";
++
++	aliases {
++		ethernet0 = &gmac;
++		mmc0 = &emmc;
++		mmc1 = &sdmmc;
++	};
++
++	memory@60000000 {
++		device_type = "memory";
++		reg = <0x60000000 0x40000000>;
++	};
++
++	chosen {
++		stdout-path = &uart1;
++	};
++
++	adc-keys {
++		compatible = "adc-keys";
++		io-channels = <&saradc 1>;
++		io-channel-names = "buttons";
++		keyup-threshold-microvolt = <3300000>;
++
++		button-recovery {
++			label = "Recovery";
++			linux,code = <KEY_VENDOR>;
++			press-threshold-microvolt = <0>;
++		};
++	};
++
++	dc_5v: regulator-dc-5v {
++		compatible = "regulator-fixed";
++		regulator-name = "DC_5V";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	hdmi-connnector {
++		compatible = "hdmi-connector";
++		type = "a";
++
++		port {
++			hdmi_connector_in: endpoint {
++				remote-endpoint = <&hdmi_connector_out>;
++			};
++		};
++	};
++
++	/*
++	 * This is a vbus-supply, which also supplies the GL852G usb hub,
++	 * thus has to be always-on
++	 */
++	host_pwr_5v: regulator-host-pwr-5v {
++		compatible = "regulator-fixed";
++		gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;
++		startup-delay-us = <1500>;
++		regulator-name = "HOST_PWR_5V";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&dc_5v>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&host_drv>;
++		enable-active-high;
++		regulator-always-on;
++	};
++
++	ir-receiver {
++		compatible = "gpio-ir-receiver";
++		gpios = <&gpio3 RK_PD2 GPIO_ACTIVE_LOW>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&ir_int>;
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led-power {
++			gpios = <&gpio0 RK_PD2 GPIO_ACTIVE_HIGH>;
++			function = LED_FUNCTION_POWER;
++			color = <LED_COLOR_ID_BLUE>;
++			default-state = "on";
++			pinctrl-names = "default";
++			pinctrl-0 = <&power_led>;
++		};
++
++		led-spd {
++			gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_LOW>;
++			function = LED_FUNCTION_LAN;
++			color = <LED_COLOR_ID_GREEN>;
++			/*
++			 * currently not allowed to be set as per
++			 * https://www.kernel.org/doc/Documentation/devicetree/bindings/leds/common.yaml
++			 * and needs to set in userspace:
++			 *
++			 * linux,default-trigger = "netdev";
++			 */
++			pinctrl-names = "default";
++			pinctrl-0 = <&spd_led>;
++		};
++	};
++
++	mcu3v3: regulator-mcu3v3 {
++		compatible = "regulator-fixed";
++		regulator-name = "MCU3V3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_io>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc_ddr: regulator-vcc-ddr {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_DDR";
++		regulator-min-microvolt = <1500000>;
++		regulator-max-microvolt = <1500000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc_io: regulator-vcc-io {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_IO";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc_lan: regulator-vcc-lan {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_LAN";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_io>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc_sd: regulator-vcc-sd {
++		compatible = "regulator-fixed";
++		gpio = <&gpio1 RK_PB6 GPIO_ACTIVE_LOW>;
++		startup-delay-us = <500>;
++		regulator-name = "VCC_SD";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_io>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&sdmmc_pwren>;
++	};
++
++	vcc_sys: regulator-vcc-sys {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_SYS";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&dc_5v>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc33_hdmi: regulator-vcc33-hdmi {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC33_HDMI";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcca_33>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcca_33: regulator-vcca-33 {
++		compatible = "regulator-fixed";
++		regulator-name = "VCCA_33";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vdd_11: regulator-vdd-11 {
++		compatible = "regulator-fixed";
++		regulator-name = "VDD_11";
++		regulator-min-microvolt = <1100000>;
++		regulator-max-microvolt = <1100000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vdd11_hdmi: regulator-vdd11-hdmi {
++		compatible = "regulator-fixed";
++		regulator-name = "VDD11_HDMI";
++		regulator-min-microvolt = <1100000>;
++		regulator-max-microvolt = <1100000>;
++		vin-supply = <&vdd_11>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vdd_arm: regulator-vdd-arm {
++		compatible = "pwm-regulator";
++		regulator-name = "VDD_ARM";
++		pwms = <&pwm1 0 25000 1>;
++		pwm-supply = <&vcc_sys>;
++		regulator-min-microvolt = <900000>;
++		regulator-max-microvolt = <1400000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	/*
++	 * As per schematics vdd_log is minimum 900 mV, maximum 1400 mV.
++	 * Since there are HW blocks in PD_LOGIC (which are all driven by
++	 * this supply), that either do not have a driver at all or the
++	 * driver does not implement regulator support we have to make
++	 * sure here that the voltage never drops below 1050 mV.
++	 */
++	vdd_log: regulator-vdd-log {
++		compatible = "pwm-regulator";
++		regulator-name = "VDD_LOG";
++		pwms = <&pwm2 0 25000 1>;
++		pwm-dutycycle-range = <30 100>;
++		pwm-supply = <&vcc_sys>;
++		regulator-min-microvolt = <1050000>;
++		regulator-max-microvolt = <1400000>;
++		regulator-ramp-delay = <4000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++};
++
++&cpu0 {
++	cpu-supply = <&vdd_arm>;
++};
++
++&display_subsystem {
++	status = "okay";
++};
++
++&emmc {
++	bus-width = <8>;
++	vmmc-supply = <&vcc_io>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_clk &emmc_cmd &emmc_bus8>;
++	cap-mmc-highspeed;
++	mmc-ddr-3_3v;
++	no-sd;
++	no-sdio;
++	status = "okay";
++};
++
++&gmac {
++	clock_in_out = "output";
++	phy-supply = <&vcc_lan>;
++	phy-mode = "rmii";
++	phy-handle = <&phy0>;
++	assigned-clocks = <&cru SCLK_MAC_SRC>;
++	assigned-clock-rates= <50000000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&rmii_pins>;
++	status = "okay";
++};
++
++&gpu {
++	mali-supply = <&vdd_log>;
++	status = "okay";
++};
++
++&hdmi {
++	status = "okay";
++};
++
++&hdmi_out {
++	hdmi_connector_out: endpoint {
++		remote-endpoint = <&hdmi_connector_in>;
++	};
++};
++
++&mdio {
++	phy0: ethernet-phy@1 {
++		compatible = "ethernet-phy-ieee802.3-c22";
++		reg = <1>;
++		max-speed = <100>;
++		/* T2.2.4 min. 1 us */
++		reset-assert-us = <10>;
++		/* T2.2.1 + T2.2.2 + T2.2.3 min. 6.05 us */
++		reset-deassert-us = <20>;
++		reset-gpios = <&gpio2 RK_PD0 GPIO_ACTIVE_LOW>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&dp83848c_rst>;
++	};
++};
++
++&pinctrl {
++	dp83848c {
++		dp83848c_rst: dp83848c-rst {
++			rockchip,pins = <2 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
++	ir-receiver {
++		ir_int: ir-int {
++			rockchip,pins = <3 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
++	leds {
++		power_led: power-led {
++			rockchip,pins = <0 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++
++		spd_led: spd-led {
++			rockchip,pins = <3 RK_PB3 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
++	usb2 {
++		host_drv: host-drv {
++			rockchip,pins = <3 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++};
++
++&pwm1 {
++	status = "okay";
++};
++
++&pwm2 {
++	status = "okay";
++};
++
++&saradc {
++	vref-supply = <&vcc_io>;
++	status = "okay";
++};
++
++&sdmmc {
++	bus-width = <4>;
++	vmmc-supply = <&vcc_sd>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&sdmmc_bus4 &sdmmc_clk &sdmmc_cmd &sdmmc_det>;
++	disable-wp;
++	cap-sd-highspeed;
++	no-mmc;
++	no-sdio;
++	status = "okay";
++};
++
++&uart1 {
++	status = "okay";
++};
++
++&usb_host_ehci {
++	status = "okay";
++};
++
++&usb_otg {
++	vusb_a-supply = <&vcc_io>;
++	vusb_d-supply = <&vdd_11>;
++	status = "okay";
++};
++
++&usb2phy {
++	status = "okay";
++};
++
++&usb2phy_host {
++	status = "okay";
++};
++
++&usb2phy_otg {
++	status = "okay";
++};
++
++&vop {
++	status = "okay";
++};
+diff -ruPN u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/include/configs/box-rk3128.h u-boot-new/include/configs/box-rk3128.h
+--- u-boot-b97b8e4f637f5166907d01371e57e8f7edcd54f9/include/configs/box-rk3128.h	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/include/configs/box-rk3128.h	2025-02-21 10:35:03.002001147 +0100
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++
++#ifndef __BOX_RK3128_H
++#define __BOX_RK3128_H
++
++#include <configs/rk3128_common.h>
++
++#endif

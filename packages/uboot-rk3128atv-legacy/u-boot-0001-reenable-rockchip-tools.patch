@@ -1,0 +1,19 @@
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/tools/Makefile u-boot-new/tools/Makefile
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/tools/Makefile	2024-10-18 08:21:11.000000000 +0200
++++ u-boot-new/tools/Makefile	2025-01-25 14:34:59.699900206 +0100
+@@ -59,9 +59,15 @@
+ 
+ # Rockchip pack tools
+ ifdef CONFIG_ARCH_ROCKCHIP
++hostprogs-y += boot_merger
++hostprogs-y += trust_merger
++hostprogs-y += loaderimage
+ hostprogs-y += resource_tool
+ hostprogs-y += bmp2gray16
+ 
++boot_merger-objs := rockchip/boot_merger.o rockchip/sha2.o lib/sha256.o
++trust_merger-objs := rockchip/trust_merger.o rockchip/sha2.o lib/sha256.o
++loaderimage-objs := rockchip/loaderimage.o rockchip/sha.o lib/sha256.o rockchip/crc32_rk.o
+ resource_tool-objs := rockchip/resource_tool.o
+ bmp2gray16-objs := rockchip/bmp2gray16.o
+ endif

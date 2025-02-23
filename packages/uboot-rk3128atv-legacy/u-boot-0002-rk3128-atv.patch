@@ -1,0 +1,461 @@
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/arch/arm/dts/rk3128-atv.dts u-boot-new/arch/arm/dts/rk3128-atv.dts
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/arch/arm/dts/rk3128-atv.dts	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/arch/arm/dts/rk3128-atv.dts	2025-02-11 22:25:42.268000220 +0100
+@@ -0,0 +1,152 @@
++/*
++ * (C) Copyright 2017 Rockchip Electronics Co., Ltd
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ */
++
++/dts-v1/;
++
++#include "rk3128.dtsi"
++#include <dt-bindings/input/input.h>
++
++/ {
++	model = "Rockchip RK3126 Evaluation board";
++	compatible = "rockchip,rk3126-evb", "rockchip,rk3126";
++	
++	chosen {
++		stdout-path = &uart1;
++	};
++
++	efuse: efuse@20090000 {
++		compatible = "rockchip,rk3128-efuse";
++		reg = <0x20090000 0x20>;
++		status = "okay";
++	};
++
++	
++	dc_5v: dc-5v-regulator {
++		u-boot,dm-pre-reloc;
++		compatible = "regulator-fixed";
++		regulator-name = "DC_5V";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++	
++	vcc_sys: vcc-sys-regulator {
++		u-boot,dm-pre-reloc;
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_SYS";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&dc_5v>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++	
++	vcc_io: vcc-io-regulator {
++		u-boot,dm-pre-reloc;
++		compatible = "regulator-fixed";
++		regulator-name = "VCC_IO";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_sys>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++	
++	vcc_sd: vcc-sd-regulator {
++		u-boot,dm-pre-reloc;
++		compatible = "regulator-fixed";
++		gpio = <&gpio1 RK_PB6 GPIO_ACTIVE_LOW>;
++		startup-delay-us = <100>;
++		regulator-name = "VCC_SD";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc_io>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&sdmmc_pwren>;
++	};
++	
++};
++
++&grf {
++	u-boot,dm-pre-reloc;
++};
++
++&cru {
++	u-boot,dm-pre-reloc;
++};
++
++&dmc {
++	u-boot,dm-pre-reloc;
++};
++
++&uart1 {
++	clock-frequency = <24000000>;
++	u-boot,dm-pre-reloc;
++	status = "okay";
++};
++
++&uart2 {
++	u-boot,dm-pre-reloc;
++	clock-frequency = <24000000>;
++	status = "disabled";
++};
++
++&emmc {
++        /delete-property/ pinctrl-names;
++	/delete-property/ pinctrl-0;
++	fifo-mode;
++	u-boot,dm-pre-reloc;
++	status = "okay";
++};
++
++&nandc {
++	u-boot,dm-pre-reloc;
++	status = "okay";
++};
++
++&pinctrl {
++	u-boot,dm-pre-reloc;
++};
++
++&gpio1 {
++	u-boot,dm-pre-reloc;
++};
++
++&sdmmc_pwren {
++	u-boot,dm-pre-reloc;
++};
++
++&sdmmc_clk {
++	u-boot,dm-pre-reloc;
++};
++
++&sdmmc_cmd {
++	u-boot,dm-pre-reloc;
++};
++
++&sdmmc_wp {
++	u-boot,dm-pre-reloc;
++};
++
++&sdmmc_bus4 {
++	u-boot,dm-pre-reloc;
++};
++
++&sdmmc {
++	u-boot,dm-pre-reloc;
++	bus-width = <4>;
++	vmmc-supply = <&vcc_sd>;
++	disable-wp;
++	cap-sd-highspeed;
++	no-mmc;
++	no-sdio;
++	supports-sd;
++	fifo-mode;
++	/*cd-gpios = <&gpio1 RK_PC1 GPIO_ACTIVE_LOW>;*/
++	max-frequency = <50000000>;
++	status = "okay";
++};
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/arch/arm/dts/rk3128-u-boot.dtsi u-boot-new/arch/arm/dts/rk3128-u-boot.dtsi
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/arch/arm/dts/rk3128-u-boot.dtsi	2024-10-18 08:21:11.000000000 +0200
++++ u-boot-new/arch/arm/dts/rk3128-u-boot.dtsi	2025-01-25 15:23:55.133682039 +0100
+@@ -58,6 +58,10 @@
+ 	u-boot,dm-pre-reloc;
+ };
+ 
++&sdmmc {
++	u-boot,dm-pre-reloc;
++};
++
+ &uart1 {
+ 	clock-frequency = <24000000>;
+ 	u-boot,dm-pre-reloc;
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/arch/arm/mach-rockchip/rk3128/rk3128.c u-boot-new/arch/arm/mach-rockchip/rk3128/rk3128.c
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/arch/arm/mach-rockchip/rk3128/rk3128.c	2024-10-18 08:21:11.000000000 +0200
++++ u-boot-new/arch/arm/mach-rockchip/rk3128/rk3128.c	2025-02-10 18:26:46.520818364 +0100
+@@ -60,12 +60,48 @@
+ 		GPIO1C3_SHIFT		= 6,
+ 		GPIO1C3_MASK		= GENMASK(7, 6),
+ 		GPIO1C3_GPIO		= 0,
+-		GPIO1C2_MMC0_D1		= 1,
+-		GPIO1C2_UART2_RX	= 2,
++		GPIO1C3_MMC0_D1		= 1,
++		GPIO1C3_UART2_RX	= 2,
++		
++		/* SDCARD DECTN */
++		GPIO1C1_SHIFT		= 2,
++		GPIO1C1_MASK		= GENMASK(2, 2),
++		GPIO1C1_GPIO		= 0,
++		GPIO1C1_MMC0_DECTN	= 1,		
++		
++		/* UART 1 */
++		GPIO1B2_SHIFT		= 2,
++		GPIO1B2_MASK		= GENMASK(3, 2),
++		GPIO1B2_GPIO		= 0,
++		GPIO1B2_MMC0_D0		= 1,
++		GPIO1B2_UART1_TX	= 2,
++
++		GPIO1B3_SHIFT		= 4,
++		GPIO1B3_MASK		= GENMASK(5, 4),
++		GPIO1B3_GPIO		= 0,
++		GPIO1B3_MMC0_D1		= 1,
++		GPIO1B3_UART1_RX	= 2,
++		
++		GPIO1B6_SHIFT		= 12,
++		GPIO1B6_MASK		= GENMASK(12,12),
++		GPIO1B6_GPIO		= 0,
++		GPIO1B6_MMC0_PWREN	= 1,
++		
+ 	};
+ 
+ 	rk_clrsetreg(&grf->gpio1c_iomux,
+-		     GPIO1C2_MASK, GPIO1C2_UART2_TX << GPIO1C2_SHIFT);
++		     GPIO1C2_MASK, GPIO1C2_MMC0_D0 << GPIO1C2_SHIFT);
++	rk_clrsetreg(&grf->gpio1c_iomux,
++		     GPIO1C3_MASK, GPIO1C3_MMC0_D1 << GPIO1C3_SHIFT);
++	
+ 	rk_clrsetreg(&grf->gpio1c_iomux,
+-		     GPIO1C3_MASK, GPIO1C2_UART2_RX << GPIO1C3_SHIFT);
++		     GPIO1C1_MASK, GPIO1C1_GPIO << GPIO1C1_SHIFT);
++
++	rk_clrsetreg(&grf->gpio1b_iomux,
++		     GPIO1B2_MASK, GPIO1B2_UART1_TX << GPIO1B2_SHIFT);
++	rk_clrsetreg(&grf->gpio1b_iomux,
++		     GPIO1B3_MASK, GPIO1B3_UART1_RX << GPIO1B3_SHIFT);
++		     
++	rk_clrsetreg(&grf->gpio1b_iomux,
++		     GPIO1B6_MASK, GPIO1B6_GPIO << GPIO1B6_SHIFT);
+ }
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/configs/rk3128_atv_defconfig u-boot-new/configs/rk3128_atv_defconfig
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/configs/rk3128_atv_defconfig	1970-01-01 01:00:00.000000000 +0100
++++ u-boot-new/configs/rk3128_atv_defconfig	2025-02-19 19:25:41.465988072 +0100
+@@ -0,0 +1,76 @@
++CONFIG_ARM=y
++CONFIG_ARM_CPU_SUSPEND=y
++CONFIG_ARCH_ROCKCHIP=y
++CONFIG_SYS_MALLOC_F_LEN=0x38000
++CONFIG_ROCKCHIP_RK3128=y
++CONFIG_DEFAULT_DEVICE_TREE="rk3128-atv"
++CONFIG_DEBUG_UART=y
++CONFIG_FIT=y
++CONFIG_NAND_BOOT=y
++CONFIG_BOOTDELAY=0
++CONFIG_LOGLEVEL=7
++CONFIG_LOG=y
++CONFIG_LOG_MAX_LEVEL=7
++# CONFIG_DISPLAY_CPUINFO is not set
++# CONFIG_SKIP_RELOCATE_UBOOT is not set
++CONFIG_CMD_DTIMG=y
++# CONFIG_CMD_ELF is not set
++# CONFIG_CMD_IMI is not set
++# CONFIG_CMD_IMLS is not set
++# CONFIG_CMD_XIMG is not set
++# CONFIG_CMD_FLASH is not set
++# CONFIG_CMD_FPGA is not set
++CONFIG_CMD_GPT=y
++# CONFIG_CMD_LOADB is not set
++# CONFIG_CMD_LOADS is not set
++CONFIG_CMD_MMC=y
++# CONFIG_CMD_ITEST is not set
++# CONFIG_CMD_SETEXPR is not set
++CONFIG_CMD_BMP=y
++# CONFIG_CMD_MISC is not set
++# CONFIG_ISO_PARTITION is not set
++CONFIG_EFI_PARTITION_ENTRIES_NUMBERS=64
++CONFIG_OF_LIVE=y
++CONFIG_OF_SPL_REMOVE_PROPS="pinctrl-0 pinctrl-names interrupt-parent assigned-clocks assigned-clock-rates assigned-clock-parents"
++CONFIG_REGMAP=y
++CONFIG_SYSCON=y
++CONFIG_CLK=y
++CONFIG_ROCKCHIP_GPIO=y
++CONFIG_SYS_I2C_ROCKCHIP=y
++CONFIG_DM_KEY=y
++CONFIG_ADC_KEY=y
++CONFIG_GPIO_KEY=y
++CONFIG_RK_KEY=y
++CONFIG_MISC=y
++CONFIG_ROCKCHIP_EFUSE=y
++CONFIG_MMC_DW=y
++CONFIG_MMC_DW_ROCKCHIP=y
++CONFIG_MMC_USE_PRE_CONFIG=y
++CONFIG_PHYLIB=y
++CONFIG_DM_ETH=y
++CONFIG_DM_MDIO=y
++CONFIG_DM_ETH_PHY=y
++CONFIG_RGMII=y
++CONFIG_PINCTRL=y
++CONFIG_DM_FUEL_GAUGE=y
++CONFIG_REGULATOR_PWM=y
++CONFIG_DM_REGULATOR_FIXED=y
++CONFIG_PWM_ROCKCHIP=y
++CONFIG_RAM=y
++CONFIG_DM_RESET=y
++CONFIG_RKNAND=y
++CONFIG_DEBUG_UART_BASE=0x20064000
++CONFIG_DEBUG_UART_CLOCK=24000000
++CONFIG_DEBUG_UART_SHIFT=2
++# CONFIG_DEBUG_UART_ALWAYS is not set
++CONFIG_SYSRESET=y
++CONFIG_DM_VIDEO=y
++# CONFIG_BACKLIGHT_PWM is not set
++CONFIG_DISPLAY=y
++CONFIG_VIDEO_ROCKCHIP=y
++CONFIG_DISPLAY_ROCKCHIP_HDMI=y
++CONFIG_DRM_ROCKCHIP=y
++CONFIG_LCD=y
++CONFIG_USE_TINY_PRINTF=y
++CONFIG_ERRNO_STR=y
++# CONFIG_EFI_LOADER is not set
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/drivers/misc/rockchip-efuse.c u-boot-new/drivers/misc/rockchip-efuse.c
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/drivers/misc/rockchip-efuse.c	2024-10-18 08:21:11.000000000 +0200
++++ u-boot-new/drivers/misc/rockchip-efuse.c	2025-02-09 17:46:23.526159603 +0100
+@@ -70,6 +70,7 @@
+ #define RK3399_STROBE           BIT(1)
+ #define RK3399_CSB              BIT(0)
+ 
++#define RK3128_A_SHIFT		7
+ #define RK3288_A_SHIFT          6
+ #define RK3288_A_MASK           0x3ff
+ #define RK3288_NFUSES           32
+@@ -177,6 +178,49 @@
+ 	return ret;
+ }
+ 
++static int rockchip_rk3128_efuse_read(struct udevice *dev, int offset,
++				      void *buf, int size)
++{
++	struct rockchip_efuse_platdata *plat = dev_get_platdata(dev);
++	struct rockchip_efuse_regs *efuse =
++		(struct rockchip_efuse_regs *)plat->base;
++	u8 *buffer = buf;
++	int max_size = RK3288_NFUSES * RK3288_BYTES_PER_FUSE;
++
++	if (size > (max_size - offset))
++		size = max_size - offset;
++
++	/* Switch to read mode */
++	writel(RK3288_LOAD | RK3288_PGENB, &efuse->ctrl);
++	udelay(1);
++
++	while (size--) {
++		writel(readl(&efuse->ctrl) &
++				(~(RK3288_A_MASK << RK3128_A_SHIFT)),
++				&efuse->ctrl);
++		/* set addr */
++		writel(readl(&efuse->ctrl) |
++				((offset++ & RK3288_A_MASK) << RK3128_A_SHIFT),
++				&efuse->ctrl);
++		udelay(1);
++		/* strobe low to high */
++		writel(readl(&efuse->ctrl) |
++				RK3288_STROBE, &efuse->ctrl);
++		ndelay(60);
++		/* read data */
++		*buffer++ = readl(&efuse->dout);
++		/* reset strobe to low */
++		writel(readl(&efuse->ctrl) &
++				(~RK3288_STROBE), &efuse->ctrl);
++		udelay(1);
++	}
++
++	/* Switch to standby mode */
++	writel(RK3288_PGENB | RK3288_CSB, &efuse->ctrl);
++
++	return 0;
++}
++
+ #ifndef CONFIG_SPL_BUILD
+ static int rockchip_rk3368_efuse_read(struct udevice *dev, int offset,
+ 				      void *buf, int size)
+@@ -476,6 +520,10 @@
+ 		.data = (ulong)&rockchip_rk3288_efuse_read,
+ 	},
+ 	{
++		.compatible = "rockchip,rk3128-efuse",
++		.data = (ulong)&rockchip_rk3128_efuse_read,
++	},
++	{
+ 		.compatible = "rockchip,rk3188-efuse",
+ 		.data = (ulong)&rockchip_rk3288_efuse_read,
+ 	},
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/drivers/mmc/dw_mmc.c u-boot-new/drivers/mmc/dw_mmc.c
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/drivers/mmc/dw_mmc.c	2024-10-18 08:21:11.000000000 +0200
++++ u-boot-new/drivers/mmc/dw_mmc.c	2025-01-31 09:26:25.368864924 +0100
+@@ -885,14 +885,12 @@
+ 		goto dw_mmc_cdetect;
+ 	}
+ 
+-	ret = !dm_gpio_get_value(&detect);
++	ret = dm_gpio_get_value(&detect);
+ 	dm_gpio_free(dev, &detect);
+ 	return ret;
+ dw_mmc_cdetect:
+ #endif
+-	ret = (dwmci_readl(host, DWMCI_CDETECT) & (1 << 0)) == 0 ? 1 : 0;
+-
+-	return ret;
++	return -1; //!(dwmci_readl(host, DWMCI_CDETECT) & 1);
+ }
+ 
+ #ifdef CONFIG_DM_MMC
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/include/configs/rk3128_common.h u-boot-new/include/configs/rk3128_common.h
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/include/configs/rk3128_common.h	2024-10-18 08:21:11.000000000 +0200
++++ u-boot-new/include/configs/rk3128_common.h	2025-02-09 14:16:00.773470377 +0100
+@@ -71,12 +71,14 @@
+ 	"partitions=" PARTS_DEFAULT \
+ 	ROCKCHIP_DEVICE_SETTINGS \
+ 	RKIMG_DET_BOOTDEV \
+-	BOOTENV
++	BOOTENV \
++	"rknand_boot=if rknand dev ${devnum}; then setenv devtype rknand; run scan_dev_for_boot_part; fi"
+ 
+ #endif
+ 
+ /* rockchip ohci host driver */
+-#define CONFIG_USB_OHCI_NEW
++/* 
++#define CONFIG_USB_OHCI_NEW 
+ #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+-
++*/
+ #endif
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/include/configs/rockchip-common.h u-boot-new/include/configs/rockchip-common.h
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/include/configs/rockchip-common.h	2024-10-18 08:21:11.000000000 +0200
++++ u-boot-new/include/configs/rockchip-common.h	2025-02-10 18:45:11.238791166 +0100
+@@ -146,8 +146,8 @@
+ 
+ #define RKIMG_DET_BOOTDEV \
+ 	"rkimg_bootdev=" \
+-	"if mmc dev 1 && rkimgtest mmc 1; then " \
+-		"setenv devtype mmc; setenv devnum 1; echo Boot from SDcard;" \
++	"if mmc dev 1; then " \
++		"setenv devtype mmc; setenv devnum 1;" \
+ 	"elif mmc dev 0; then " \
+ 		"setenv devtype mmc; setenv devnum 0;" \
+ 	"elif mtd_blk dev 0; then " \
+@@ -174,10 +174,13 @@
+ 	"boot_fit;"
+ #else
+ #define RKIMG_BOOTCOMMAND			\
+-	"boot_android ${devtype} ${devnum};"	\
++	"run distro_bootcmd;"
++	
++	/*	"boot_android ${devtype} ${devnum};"	\
+ 	"boot_fit;"				\
+ 	"bootrkp;"				\
+-	"run distro_bootcmd;"
++*/
++	
+ #endif
+ 
+ #endif /* CONFIG_SPL_BUILD */
+diff -ruPN u-boot-2687dce2617032930f2c43fef349bdea694c6f68/include/mmc.h u-boot-new/include/mmc.h
+--- u-boot-2687dce2617032930f2c43fef349bdea694c6f68/include/mmc.h	2024-10-18 08:21:11.000000000 +0200
++++ u-boot-new/include/mmc.h	2025-02-10 17:43:25.996882389 +0100
+@@ -387,7 +387,7 @@
+ };
+ 
+ struct mmc_cmd {
+-	ushort cmdidx;
++	uint cmdidx;
+ 	uint resp_type;
+ 	uint cmdarg;
+ 	uint response[4];

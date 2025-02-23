@@ -1,1 +1,1 @@
-include $(sort $(wildcard $(BR2_EXTERNAL_ROCKCHIP_ATV_BOX_PATH)/packages/*/*.mk))
+include $(sort $(wildcard $(BR2_EXTERNAL_ROCKCHIP_UNOFFICIAL_BUILDROOT_PATH)/packages/*/*.mk))

@@ -1,0 +1,4 @@
+config BR2_PACKAGE_UBOOT_RK3128ATV_LEGACY
+    bool "uboot for rockchip 3128 atv legacy"
+    help
+        uboot for rockchip 3128 atv legacy
